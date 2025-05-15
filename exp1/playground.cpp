@@ -2,7 +2,7 @@
 #include <queue>    //顾客队列
 #include <vector>   //数组
 #include <fstream>  //读文件
-#include <ctime>   //计时
+#include <ctime>    //计时
 // thread, mutex heads ref: https://blog.csdn.net/Flag_ing/article/details/126967720
 #include "mingw.thread.h"
 #include "mingw.mutex.h"
@@ -33,9 +33,10 @@ struct customer{
 queue<customer*> cqueue;
 
 // 互斥
-mutex mtx_cqueue; // 顾客队列结构互斥
+mutex mtx_cqueue; // 顾客队列结构互斥访问
 // 同步，对应队列数据结构长度
 semaphore cavail = 0; // 初始没有顾客（从0时刻开放到达）
+
 // 时间
 clock_t T_beg;
 // 统计服务人数，用于终止线程
@@ -58,14 +59,12 @@ void Server(int server_id) { // 柜员线程任务分配：等待顾客、叫号
             mtx_cqueue.unlock(); // V(mtx), 涉及改变cqueue的动作到此为止，即可解锁
             
             Sleep(TIME_UNIT*to_serve->t_need); // 服务时间
-            ++ served;
+            ++ served; // 统计服务完成数
             cout << "柜员" << server_id << "已服务顾客" << to_serve->id << endl;
-            
             to_serve->t_leave = to_serve->t_begin + to_serve->t_need;
             to_serve->server = server_id;
         }
     }
-
 }
 
 void Customer(customer* customer) { // 顾客线程任务分配：入场取号、入列等待
@@ -103,8 +102,7 @@ int main(){
 
     vector<thread> thread_customers(ALL_CUSTOMERS);
     vector<customer> customers(ALL_CUSTOMERS);
-
-    T_beg = clock();
+    T_beg = clock(); // 计时开始
     for (int i = 0; i < ALL_CUSTOMERS; ++i) {
         dataflow >> customers[i].id >> customers[i].t_entry >> customers[i].t_need;
         // cout << customers[i].id << customers[i].t_entry << customers[i].t_need << endl;
