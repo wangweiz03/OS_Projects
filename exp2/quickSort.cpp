@@ -1,6 +1,10 @@
 #include <iostream>
 #include <vector>
+#include <fstream>
+#include <ctime>
 using namespace std;
+
+#define IN_FILENAME "data.txt" // 随机数文件名
 
 int partition(vector<int>& arr, int left, int right){
     int pivot = arr[right];
@@ -22,8 +26,15 @@ void quickSort(vector<int>& arr, int left, int right){
 }
 
 int main() {
-    vector<int> arr = {1,4,3,2,5,7,6,10,8};
-    quickSort(arr, 0, arr.size()-1);
-    for (int a : arr) cout << a << " ";
-    return 0;
+    vector<int> arr;
+    ifstream inflow(IN_FILENAME);
+    int temp;
+    while (inflow >> temp) arr.push_back(temp);
+    inflow.close();
+
+    clock_t T = clock();
+    quickSort(arr, 0, arr.size());
+    double dt = double(clock() - T);
+
+    cout << "排序耗时" << dt << "ms." << endl;
 }
